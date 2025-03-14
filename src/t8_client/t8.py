@@ -1,20 +1,6 @@
-from datetime import UTC, datetime
-
 import requests
 
-
-def parse_wave_link(link: dict) -> datetime:
-    """Parse a wave link returning the timestamp as a datetime.
-    Example of a wave link:
-    {
-        "_links": {
-            "self": "http://lzfs45.mirror.twave.io/lzfs45/rest/waves/LP_Turbine/MAD32CY005/AM2/1554907724"
-        }
-    },
-    """
-    self = link["_links"]["self"]
-    timestamp = int(self.split("/")[-1])
-    return datetime.fromtimestamp(timestamp, tz=UTC)
+from .utils import decode_array, parse_pmode_item, parse_wave_item
 
 
 class T8:
@@ -30,6 +16,10 @@ class T8:
         r.raise_for_status()
         return r.json()
 
+    def __list_wave_modes(self) -> dict:
+        """List available processing modes."""
+        return self.__request("waves")
+
     def __list_waves(self, mach: str, point: str, pmode: str) -> dict:
         """List available waves for a given machine, point, and processing mode."""
         return self.__request(f"waves/{mach}/{point}/{pmode}")
@@ -40,25 +30,64 @@ class T8:
         """
         return self.__request(f"waves/{mach}/{point}/{pmode}/{t}?array_fmt={array_fmt}")
 
-    def list_waves(self, mach: str, point: str, pmode: str) -> list[datetime]:
+    def __list_spectra(self, mach: str, point: str, pmode: str) -> dict:
+        """List available spectra for a given machine, point, and processing mode."""
+        return self.__request(f"spectra/{mach}/{point}/{pmode}")
+
+    def __get_spectrum(self, mach, point, pmode, t=0, array_fmt="zlib"):
+        """Get a spectrum using the T8 API.
+        If no specific timestamp is provided, it returns the last available spectrum.
+        """
+        return self.__request(
+            f"spectra/{mach}/{point}/{pmode}/{t}?array_fmt={array_fmt}"
+        )
+
+    def list_proc_modes(self) -> list[dict]:
+        """List available processing modes."""
+        links = self.__list_wave_modes()
+        items = links["_items"]
+        return [parse_pmode_item(link) for link in items]
+
+    def list_wave_modes(self) -> list[str]:
+        """List available processing modes."""
+        links = self.__list_wave_modes()
+        items = links["_items"]
+        return [item["name"] for item in items]
+
+    def list_waves(self, mach: str, point: str, pmode: str) -> list[int]:
         """List available waves for a given machine, point, and processing mode."""
         links = self.__list_waves(mach, point, pmode)
         items = links["_items"]
-        return [parse_wave_link(link) for link in items]
+        return [parse_wave_item(link) for link in items]
 
-    def get_wave(self, mach, point, pmode, t=0, array_fmt="zlib"):
+    def get_wave(self, mach, point, pmode, t=0, array_fmt="zint"):
         """Get a waveform using the T8 API."""
-        return self.__get_wave(mach, point, pmode, t, array_fmt)
+        ret = self.__get_wave(mach, point, pmode, t, array_fmt)
 
-        # print(ret)
+        data = decode_array(ret["data"], array_fmt)
+        wave = {
+            "srate": ret["sample_rate"],
+            "data": data * ret["factor"],
+            "t": ret["t"],
+        }
+        return wave
 
-        # factor = float(ret.get("factor", 1))
-        # raw = ret["data"]
-        # data = decode_array(raw, array_fmt)
-        # srate = float(ret["sample_rate"])
+    def list_spectra(self, mach: str, point: str, pmode: str) -> list[int]:
+        """List available spectra for a given machine, point, and processing mode."""
+        links = self.__list_spectra(mach, point, pmode)
+        items = links["_items"]
+        return [parse_wave_item(link) for link in items]
 
-        # wave = {
-        #     "srate": srate,
-        #     "data": factor * data,
-        # }
-        # return wave
+    def get_spectrum(self, mach, point, pmode, t=0, array_fmt="zint"):
+        """Get a spectrum using the T8 API."""
+        ret = self.__get_spectrum(mach, point, pmode, t, array_fmt)
+
+        data = decode_array(ret["data"], array_fmt)
+        spectrum = {
+            "min_freq": ret["min_freq"],
+            "max_freq": ret["max_freq"],
+            "data": data * ret["factor"],
+            "window": ret["window"],
+            "t": ret["t"],
+        }
+        return spectrum

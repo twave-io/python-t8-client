@@ -65,12 +65,11 @@ class T8:
         ret = self.__get_wave(mach, point, pmode, t, array_fmt)
 
         data = decode_array(ret["data"], array_fmt)
-        wave = {
+        return {
             "srate": ret["sample_rate"],
             "data": data * ret["factor"],
             "t": ret["t"],
         }
-        return wave
 
     def list_spectra(self, mach: str, point: str, pmode: str) -> list[int]:
         """List available spectra for a given machine, point, and processing mode."""
@@ -83,11 +82,10 @@ class T8:
         ret = self.__get_spectrum(mach, point, pmode, t, array_fmt)
 
         data = decode_array(ret["data"], array_fmt)
-        spectrum = {
+        return {
             "min_freq": ret["min_freq"],
             "max_freq": ret["max_freq"],
             "data": data * ret["factor"],
             "window": ret["window"],
             "t": ret["t"],
         }
-        return spectrum

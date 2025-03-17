@@ -9,14 +9,17 @@ def decode_array(raw: bytes, fmt="zint"):
     """Decode a base64-encoded binary array into a numpy array.
     The format of the array is specified by the fmt parameter.
     """
+
+    d = decompress(b64decode(raw))
+
     if fmt == "zint":
-        d = decompress(b64decode(raw))
         return np.frombuffer(d, dtype=np.int16).astype(np.float32)
-    elif fmt == "zlib":
-        d = decompress(b64decode(raw))
+
+    if fmt == "zlib":
         return np.frombuffer(d, dtype=np.float32)
-    elif fmt == "b64":
-        return np.frombuffer(b64decode(raw), dtype=np.float32)
+
+    if fmt == "b64":
+        return np.frombuffer(d, dtype=np.float32)
 
     raise ValueError(f"Unknown array format {fmt}")
 

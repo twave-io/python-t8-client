@@ -6,7 +6,9 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "click>=8.1.8",
+    "matplotlib>=3.10.1",
     "numpy>=2.2.3",
+    "pyqt5>=5.15.11",
     "requests>=2.32.3",
     "tabulate>=0.9.0",
 ]
@@ -23,11 +25,26 @@ build-backend = "hatchling.build"
 
 [tool.ruff.lint]
 select = [
+    "ARG", # flake8-unused-arguments
+    "B",   # flake8-bugbear - common bugs and anti-patterns
+    "C90", # McCabe complexity
     "E",   # pycodestyle
     "F",   # Pyflakes
-    "UP",  # pyupgrade
-    "B",   # flake8-bugbear
-    "SIM", # flake8-simplify
     "I",   # isort
+    "N",   # pep8-naming
+    "NPY", # flake8-numpy
+    "PL",  # pylint
+    "Q",   # flake8-quotes
+    "RET", # flake8-return
+    "RUF", # ruff-specific, import optimization and other inefficiencies
+    "SIM", # flake8-simplify
+    "UP",  # pyupgrade
+    "W",   # pycodestyle
+    # "ANN", # flake8-annotations - Consistent type annotations
+    # "D", # pydocstyle
+    # "EM", # flake8-errmsg
+    # "ERA", # flake8-eradicate - remove commented out code
+    # "PT",  # flake8-pytest-style
+    # "S", # flake8-bandit - security checks
+    # "SLF", # flake8-self - private member access
 ]
-ignore = []

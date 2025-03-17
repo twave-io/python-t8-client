@@ -39,8 +39,8 @@ def list_waves(ctx, machine, point, pmode):
     """List waves"""
     client = ctx.obj["T8"]
     timestamps = client.list_waves(machine, point, pmode)
-    for date in format_timestamps(timestamps):
-        print(date)
+    for t in format_timestamps(timestamps):
+        print(t)
 
 
 @click.command()
@@ -59,7 +59,11 @@ def get_wave(ctx, machine, point, pmode, time):
 
     client = ctx.obj["T8"]
     wave = client.get_wave(machine, point, pmode, t)
-    times = np.arange(len(wave["data"])) / wave["srate"]
+    duration = len(wave["data"]) / wave["srate"]
+    print(f"Wave duration: {duration:.8f} s")
+    print(f"Sample rate: {wave['srate']} Hz")
+    print(f"Number of samples: {len(wave['data'])}")
+    times = np.linspace(0, duration, len(wave["data"]), endpoint=False)
 
     out_file = f"wf_{machine}_{point}_{pmode}_{t}.csv"
     print(f"Saving waveform to {out_file}")
@@ -77,8 +81,8 @@ def list_spectra(ctx, machine, point, pmode):
     """List spectra"""
     client = ctx.obj["T8"]
     timestamps = client.list_spectra(machine, point, pmode)
-    for date in format_timestamps(timestamps):
-        print(date)
+    for t in format_timestamps(timestamps):
+        print(t)
 
 
 @click.command()

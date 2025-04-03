@@ -10,9 +10,23 @@ class T8:
         self.__passw = password
         self.__base_url = f"{self.__host}/rest"
 
+    @property
+    def host(self):
+        """Return the host URL."""
+        return self.__host
+
+    @property
+    def user(self):
+        """Return the username."""
+        return self.__user
+
     def __request(self, url: str) -> dict:
         """Make a request to the T8 API."""
-        r = requests.get(f"{self.__base_url}/{url}", auth=(self.__user, self.__passw))
+        r = requests.get(
+            f"{self.__base_url}/{url}",
+            auth=(self.__user, self.__passw),
+            allow_redirects=True,
+        )
         r.raise_for_status()
         return r.json()
 

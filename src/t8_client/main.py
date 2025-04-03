@@ -8,12 +8,23 @@ from t8_client.t8 import T8
 
 from .utils import format_timestamps, parse_timestamp
 
+DEFAULT_HOST = "http://localhost"
 
-@click.group()
+CONTEXT_SETTINGS = {
+    "help_option_names": ["-h", "--help"],
+    "show_default": True,
+}
+
+
+@click.group(context_settings=CONTEXT_SETTINGS)
 @click.pass_context
-@click.option("--host", "-H", help="T8 host", default="http://localhost")
-@click.option("--user", "-u", help="Username", default="admin")
-@click.option("--passw", "-p", help="Password")
+@click.option(
+    "--host", help="T8 host", default=DEFAULT_HOST, envvar="T8_HOST", show_envvar=True
+)
+@click.option(
+    "--user", help="Username", default="admin", envvar="T8_USER", show_envvar=True
+)
+@click.option("--passw", help="Password", envvar="T8_PASSW", show_envvar=True)
 def cli(ctx, host, user, passw):
     # ensure that ctx.obj exists and is a dict (in case `cli()` is called
     # by means other than the `if` block below)
@@ -116,4 +127,5 @@ cli.add_command(get_wave)
 cli.add_command(list_spectra)
 cli.add_command(get_spectrum)
 
-cli(auto_envvar_prefix="T8_CLIENT")
+
+cli(auto_envvar_prefix="T8_")

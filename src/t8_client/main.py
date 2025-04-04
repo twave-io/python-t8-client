@@ -68,10 +68,10 @@ def print_wave(wave: Wave):
     """Print wave information."""
     duration = len(wave.data) / wave.sample_rate
 
-    print(f"Path: \t{wave.path}")
-    print(f"Speed: \t{wave.speed} Hz")
-    print(f"Timestamp: \t{format_timestamp(wave.t)} s")
-    print(f"Snapshot t.: \t{format_timestamp(wave.snap_t)} s")
+    print(f"Path: \t\t{wave.path}")
+    print(f"Speed: \t\t{wave.speed} Hz")
+    print(f"Timestamp: \t{format_timestamp(wave.t)}")
+    print(f"Snapshot: \t{format_timestamp(wave.snap_t)}")
     print(f"Unit ID: \t{wave.unit_id}")
     print(f"Sample rate: \t{wave.sample_rate} Hz")
     print(f"Samples: \t{len(wave.data)}")
@@ -80,15 +80,15 @@ def print_wave(wave: Wave):
 
 def print_spectrum(sp: Spectrum):
     """Print spectrum information."""
-    print(f"Path: \t{sp.path}")
-    print(f"Speed: \t{sp.speed} Hz")
+    print(f"Path: \t\t{sp.path}")
+    print(f"Speed: \t\t{sp.speed} Hz")
     print(f"Timestamp: \t{format_timestamp(sp.t)} s")
-    print(f"Snapshot t.: \t{format_timestamp(sp.snap_t)} s")
+    print(f"Snapshot: \t{format_timestamp(sp.snap_t)} s")
     print(f"Unit ID: \t{sp.unit_id}")
     print(f"Max. freq: \t{sp.max_freq} Hz")
     print(f"Min. freq: \t{sp.min_freq} Hz")
     print(f"Window: \t{sp.window}")
-    print(f"Bins: \t{len(sp.data)}")
+    print(f"Bins: \t\t{len(sp.data)}")
 
 
 @click.command()

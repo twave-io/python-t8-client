@@ -70,16 +70,16 @@ def get_wave(ctx, machine, point, pmode, time):
 
     client = ctx.obj["T8"]
     wave = client.get_wave(machine, point, pmode, t)
-    duration = len(wave["data"]) / wave["srate"]
+    duration = len(wave.data) / wave.sample_rate
     print(f"Wave duration: {duration:.8f} s")
-    print(f"Sample rate: {wave['srate']} Hz")
-    print(f"Number of samples: {len(wave['data'])}")
-    times = np.linspace(0, duration, len(wave["data"]), endpoint=False)
+    print(f"Sample rate: {wave.sample_rate} Hz")
+    print(f"Number of samples: {len(wave.data)}")
+    times = np.linspace(0, duration, len(wave.data), endpoint=False)
 
-    out_file = f"wf_{machine}_{point}_{pmode}_{t}.csv"
+    out_file = f"wf_{machine}_{point}_{pmode}_{int(wave.snap_t)}.csv"
     print(f"Saving waveform to {out_file}")
 
-    data = np.vstack((times, wave["data"])).T
+    data = np.vstack((times, wave.data)).T
     np.savetxt(out_file, data, delimiter=",", fmt="%f")
 
 
@@ -112,12 +112,13 @@ def get_spectrum(ctx, machine, point, pmode, time):
 
     client = ctx.obj["T8"]
     sp = client.get_spectrum(machine, point, pmode, t)
-    freqs = np.linspace(sp["min_freq"], sp["max_freq"], len(sp["data"]))
 
-    out_file = f"sp_{machine}_{point}_{pmode}_{t}.csv"
+    freqs = np.linspace(sp.min_freq, sp.max_freq, len(sp.data))
+
+    out_file = f"sp_{machine}_{point}_{pmode}_{int(sp.snap_t)}.csv"
     print(f"Saving spectrum to {out_file}")
 
-    data = np.vstack((freqs, sp["data"])).T
+    data = np.vstack((freqs, sp.data)).T
     np.savetxt(out_file, data, delimiter=",", fmt="%f")
 
 

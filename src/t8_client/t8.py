@@ -1,5 +1,6 @@
 import requests
 
+from .models import Spectrum, Wave
 from .utils import decode_array, parse_pmode_item, parse_wave_item
 
 
@@ -74,16 +75,24 @@ class T8:
         items = links["_items"]
         return [parse_wave_item(link) for link in items]
 
-    def get_wave(self, mach, point, pmode, t=0, array_fmt="zint"):
+    def get_wave(
+        self, mach: str, point: str, pmode: str, t: int = 0, array_fmt: str = "zint"
+    ) -> Wave:
         """Get a waveform using the T8 API."""
         ret = self.__get_wave(mach, point, pmode, t, array_fmt)
 
-        data = decode_array(ret["data"], array_fmt)
-        return {
-            "srate": ret["sample_rate"],
-            "data": data * ret["factor"],
-            "t": ret["t"],
-        }
+        path = ":".join([mach, point, pmode])
+        factor = ret["factor"]
+        data = decode_array(ret["data"], array_fmt) * factor
+        return Wave(
+            path=path,
+            speed=ret["speed"],
+            snap_t=ret["snap_t"],
+            t=ret["t"],
+            unit_id=ret["unit_id"],
+            data=data,
+            sample_rate=ret["sample_rate"],
+        )
 
     def list_spectra(self, mach: str, point: str, pmode: str) -> list[int]:
         """List available spectra for a given machine, point, and processing mode."""
@@ -91,15 +100,23 @@ class T8:
         items = links["_items"]
         return [parse_wave_item(link) for link in items]
 
-    def get_spectrum(self, mach, point, pmode, t=0, array_fmt="zint"):
+    def get_spectrum(
+        self, mach: str, point: str, pmode: str, t: int = 0, array_fmt: str = "zint"
+    ) -> Spectrum:
         """Get a spectrum using the T8 API."""
         ret = self.__get_spectrum(mach, point, pmode, t, array_fmt)
 
-        data = decode_array(ret["data"], array_fmt)
-        return {
-            "min_freq": ret["min_freq"],
-            "max_freq": ret["max_freq"],
-            "data": data * ret["factor"],
-            "window": ret["window"],
-            "t": ret["t"],
-        }
+        path = ":".join([mach, point, pmode])
+        factor = ret["factor"]
+        data = decode_array(ret["data"], array_fmt) * factor
+        return Spectrum(
+            path=path,
+            speed=ret["speed"],
+            snap_t=ret["snap_t"],
+            t=ret["t"],
+            unit_id=ret["unit_id"],
+            min_freq=ret["min_freq"],
+            max_freq=ret["max_freq"],
+            data=data,
+            window=ret["window"],
+        )

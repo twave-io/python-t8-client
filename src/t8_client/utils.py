@@ -29,7 +29,7 @@ def parse_timestamp(timestamp: str) -> int:
     return int(datetime.fromisoformat(timestamp).timestamp())
 
 
-def format_timestamp(timestamp: int) -> str:
+def format_timestamp(timestamp: float) -> str:
     """Format a timestamp as an ISO 8601 string."""
     return datetime.fromtimestamp(timestamp, tz=UTC).isoformat()
 
@@ -55,7 +55,7 @@ def parse_wave_item(item: dict) -> int:
 
 
 def parse_pmode_item(item: dict) -> dict:
-    """Parse a json item containing a link to a processing mode.
+    """Parse a json item containing a link to a processing mode or parameter
     Example link:
     {
         "_links": {
@@ -65,4 +65,4 @@ def parse_pmode_item(item: dict) -> dict:
     """
     self = item["_links"]["self"]
     parts = self.strip("/").split("/")
-    return {"machine": parts[-3], "point": parts[-2], "pmode": parts[-1]}
+    return {"machine": parts[-3], "point": parts[-2], "tag": parts[-1]}

@@ -28,7 +28,7 @@ def test_parse_pmode_item():
         }
     }
 
-    expected = {"machine": "LP_Turbine", "point": "MAD32CY005", "pmode": "AM2"}
+    expected = {"machine": "LP_Turbine", "point": "MAD32CY005", "tag": "AM2"}
     assert parse_pmode_item(link) == expected
 
 

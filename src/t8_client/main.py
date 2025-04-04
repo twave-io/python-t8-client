@@ -4,9 +4,10 @@ import click
 import numpy as np
 from tabulate import tabulate
 
+from t8_client.models import Spectrum, Wave
 from t8_client.t8 import T8
 
-from .utils import format_timestamps, parse_timestamp
+from .utils import format_timestamp, format_timestamps, parse_timestamp
 
 DEFAULT_HOST = "http://localhost"
 
@@ -43,6 +44,15 @@ def proc_modes(ctx):
 
 @click.command()
 @click.pass_context
+def params(ctx):
+    """List parameters"""
+    client = ctx.obj["T8"]
+    params = client.list_params()
+    print(tabulate(params, headers="keys"))
+
+
+@click.command()
+@click.pass_context
 @click.option("--machine", "-M", help="Machine name", required=True)
 @click.option("--point", "-p", help="Point name", required=True)
 @click.option("--pmode", "-m", help="Processing mode", required=True)
@@ -52,6 +62,33 @@ def list_waves(ctx, machine, point, pmode):
     timestamps = client.list_waves(machine, point, pmode)
     for t in format_timestamps(timestamps):
         print(t)
+
+
+def print_wave(wave: Wave):
+    """Print wave information."""
+    duration = len(wave.data) / wave.sample_rate
+
+    print(f"Path: \t{wave.path}")
+    print(f"Speed: \t{wave.speed} Hz")
+    print(f"Timestamp: \t{format_timestamp(wave.t)} s")
+    print(f"Snapshot t.: \t{format_timestamp(wave.snap_t)} s")
+    print(f"Unit ID: \t{wave.unit_id}")
+    print(f"Sample rate: \t{wave.sample_rate} Hz")
+    print(f"Samples: \t{len(wave.data)}")
+    print(f"Duration: \t{duration:.8f} s")
+
+
+def print_spectrum(sp: Spectrum):
+    """Print spectrum information."""
+    print(f"Path: \t{sp.path}")
+    print(f"Speed: \t{sp.speed} Hz")
+    print(f"Timestamp: \t{format_timestamp(sp.t)} s")
+    print(f"Snapshot t.: \t{format_timestamp(sp.snap_t)} s")
+    print(f"Unit ID: \t{sp.unit_id}")
+    print(f"Max. freq: \t{sp.max_freq} Hz")
+    print(f"Min. freq: \t{sp.min_freq} Hz")
+    print(f"Window: \t{sp.window}")
+    print(f"Bins: \t{len(sp.data)}")
 
 
 @click.command()
@@ -70,10 +107,9 @@ def get_wave(ctx, machine, point, pmode, time):
 
     client = ctx.obj["T8"]
     wave = client.get_wave(machine, point, pmode, t)
+    print_wave(wave)
+
     duration = len(wave.data) / wave.sample_rate
-    print(f"Wave duration: {duration:.8f} s")
-    print(f"Sample rate: {wave.sample_rate} Hz")
-    print(f"Number of samples: {len(wave.data)}")
     times = np.linspace(0, duration, len(wave.data), endpoint=False)
 
     out_file = f"wf_{machine}_{point}_{pmode}_{int(wave.snap_t)}.csv"
@@ -112,6 +148,7 @@ def get_spectrum(ctx, machine, point, pmode, time):
 
     client = ctx.obj["T8"]
     sp = client.get_spectrum(machine, point, pmode, t)
+    print_spectrum(sp)
 
     freqs = np.linspace(sp.min_freq, sp.max_freq, len(sp.data))
 
@@ -123,6 +160,7 @@ def get_spectrum(ctx, machine, point, pmode, time):
 
 
 cli.add_command(proc_modes)
+cli.add_command(params)
 cli.add_command(list_waves)
 cli.add_command(get_wave)
 cli.add_command(list_spectra)

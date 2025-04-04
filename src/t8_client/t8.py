@@ -31,6 +31,10 @@ class T8:
         r.raise_for_status()
         return r.json()
 
+    def __list_params(self) -> dict:
+        """List available parameters."""
+        return self.__request("trends/param")
+
     def __list_wave_modes(self) -> dict:
         """List available processing modes."""
         return self.__request("waves")
@@ -61,7 +65,15 @@ class T8:
         """List available processing modes."""
         links = self.__list_wave_modes()
         items = links["_items"]
-        return [parse_pmode_item(link) for link in items]
+        pmodes = [parse_pmode_item(link) for link in items]
+        return sorted(pmodes, key=lambda x: (x["machine"], x["point"], x["tag"]))
+
+    def list_params(self) -> list[dict]:
+        """List available parameters."""
+        links = self.__list_params()
+        items = links["_items"]
+        params = [parse_pmode_item(link) for link in items]
+        return sorted(params, key=lambda x: (x["machine"], x["point"], x["tag"]))
 
     def list_wave_modes(self) -> list[str]:
         """List available processing modes."""
@@ -87,7 +99,7 @@ class T8:
         return Wave(
             path=path,
             speed=ret["speed"],
-            snap_t=ret["snap_t"],
+            snap_t=int(ret["snap_t"]),
             t=ret["t"],
             unit_id=ret["unit_id"],
             data=data,
@@ -112,7 +124,7 @@ class T8:
         return Spectrum(
             path=path,
             speed=ret["speed"],
-            snap_t=ret["snap_t"],
+            snap_t=int(ret["snap_t"]),
             t=ret["t"],
             unit_id=ret["unit_id"],
             min_freq=ret["min_freq"],

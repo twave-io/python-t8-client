@@ -2,6 +2,7 @@ import sys
 
 import click
 import numpy as np
+from click import Context
 from tabulate import tabulate
 
 from t8_client.models import Spectrum, Wave
@@ -26,7 +27,7 @@ CONTEXT_SETTINGS = {
     "--user", help="Username", default="admin", envvar="T8_USER", show_envvar=True
 )
 @click.option("--passw", help="Password", envvar="T8_PASSW", show_envvar=True)
-def cli(ctx, host, user, passw):
+def cli(ctx: Context, host: str, user: str, passw: str) -> None:
     # ensure that ctx.obj exists and is a dict (in case `cli()` is called
     # by means other than the `if` block below)
     ctx.ensure_object(dict)
@@ -35,7 +36,7 @@ def cli(ctx, host, user, passw):
 
 @click.command()
 @click.pass_context
-def proc_modes(ctx):
+def proc_modes(ctx: Context) -> None:
     """List processing modes"""
     client = ctx.obj["T8"]
     pmodes = client.list_proc_modes()
@@ -44,7 +45,7 @@ def proc_modes(ctx):
 
 @click.command()
 @click.pass_context
-def params(ctx):
+def params(ctx: Context) -> None:
     """List parameters"""
     client = ctx.obj["T8"]
     params = client.list_params()
@@ -56,7 +57,7 @@ def params(ctx):
 @click.option("--machine", "-M", help="Machine name", required=True)
 @click.option("--point", "-p", help="Point name", required=True)
 @click.option("--pmode", "-m", help="Processing mode", required=True)
-def list_waves(ctx, machine, point, pmode):
+def list_waves(ctx: Context, machine: str, point: str, pmode: str) -> None:
     """List waves"""
     client = ctx.obj["T8"]
     timestamps = client.list_waves(machine, point, pmode)
@@ -64,7 +65,7 @@ def list_waves(ctx, machine, point, pmode):
         print(t)
 
 
-def print_wave(wave: Wave):
+def print_wave(wave: Wave) -> None:
     """Print wave information."""
     duration = len(wave.data) / wave.sample_rate
 
@@ -75,10 +76,10 @@ def print_wave(wave: Wave):
     print(f"Unit ID: \t{wave.unit_id}")
     print(f"Sample rate: \t{wave.sample_rate} Hz")
     print(f"Samples: \t{len(wave.data)}")
-    print(f"Duration: \t{duration:.8f} s")
+    print(f"Duration: \t{duration:.3f} s")
 
 
-def print_spectrum(sp: Spectrum):
+def print_spectrum(sp: Spectrum) -> None:
     """Print spectrum information."""
     print(f"Path: \t\t{sp.path}")
     print(f"Speed: \t\t{sp.speed} Hz")
@@ -97,7 +98,7 @@ def print_spectrum(sp: Spectrum):
 @click.option("--point", "-p", help="Point name", required=True)
 @click.option("--pmode", "-m", help="Processing mode", required=True)
 @click.option("--time", "-t", help="Timestamp", default="1970-01-01T00:00:00Z")
-def get_wave(ctx, machine, point, pmode, time):
+def get_wave(ctx: Context, machine: str, point: str, pmode: str, time: str) -> None:
     """Get a wave at a specific timestamp and save it to a CSV file."""
     try:
         t = parse_timestamp(time)
@@ -124,7 +125,7 @@ def get_wave(ctx, machine, point, pmode, time):
 @click.option("--machine", "-M", help="Machine name", required=True)
 @click.option("--point", "-p", help="Point name", required=True)
 @click.option("--pmode", "-m", help="Processing mode", required=True)
-def list_spectra(ctx, machine, point, pmode):
+def list_spectra(ctx: Context, machine: str, point: str, pmode: str) -> None:
     """List spectra"""
     client = ctx.obj["T8"]
     timestamps = client.list_spectra(machine, point, pmode)
@@ -138,7 +139,7 @@ def list_spectra(ctx, machine, point, pmode):
 @click.option("--point", "-p", help="Point name", required=True)
 @click.option("--pmode", "-m", help="Processing mode", required=True)
 @click.option("--time", "-t", help="Timestamp", default="1970-01-01T00:00:00Z")
-def get_spectrum(ctx, machine, point, pmode, time):
+def get_spectrum(ctx: Context, machine: str, point: str, pmode: str, time: str) -> None:
     """Get a spectrum at a specific timestamp and save it to a CSV file."""
     try:
         t = parse_timestamp(time)

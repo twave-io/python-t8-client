@@ -41,11 +41,11 @@ select = [
     "SIM", # flake8-simplify
     "UP",  # pyupgrade
     "W",   # pycodestyle
-    # "ANN", # flake8-annotations - Consistent type annotations
-    # "D", # pydocstyle
-    # "EM", # flake8-errmsg
-    # "ERA", # flake8-eradicate - remove commented out code
-    # "PT",  # flake8-pytest-style
-    # "S", # flake8-bandit - security checks
-    # "SLF", # flake8-self - private member access
+    "ANN", # flake8-annotations - Consistent type annotations
+    "EM",  # flake8-errmsg
+    "ERA", # flake8-eradicate - remove commented out code
+    "PT",  # flake8-pytest-style
+    "S",   # flake8-bandit - security checks
+    "SLF", # flake8-self - private member access
+    # "D",   # pydocstyle
 ]

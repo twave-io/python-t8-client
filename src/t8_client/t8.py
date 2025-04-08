@@ -5,19 +5,19 @@ from .utils import decode_array, parse_pmode_item, parse_wave_item
 
 
 class T8:
-    def __init__(self, host, user, password):
+    def __init__(self, host: str, user: str, password: str) -> None:
         self.__host = host
         self.__user = user
         self.__passw = password
         self.__base_url = f"{self.__host}/rest"
 
     @property
-    def host(self):
+    def host(self) -> str:
         """Return the host URL."""
         return self.__host
 
     @property
-    def user(self):
+    def user(self) -> str:
         """Return the username."""
         return self.__user
 
@@ -27,6 +27,7 @@ class T8:
             f"{self.__base_url}/{url}",
             auth=(self.__user, self.__passw),
             allow_redirects=True,
+            timeout=5,
         )
         r.raise_for_status()
         return r.json()
@@ -43,7 +44,9 @@ class T8:
         """List available waves for a given machine, point, and processing mode."""
         return self.__request(f"waves/{mach}/{point}/{pmode}")
 
-    def __get_wave(self, mach, point, pmode, t=0, array_fmt="zlib"):
+    def __get_wave(
+        self, mach: str, point: str, pmode: str, t: int = 0, array_fmt: str = "zlib"
+    ) -> dict:
         """Get a waveform using the T8 API.
         If no specific timestamp is provided, it returns the last available wave.
         """
@@ -53,7 +56,9 @@ class T8:
         """List available spectra for a given machine, point, and processing mode."""
         return self.__request(f"spectra/{mach}/{point}/{pmode}")
 
-    def __get_spectrum(self, mach, point, pmode, t=0, array_fmt="zlib"):
+    def __get_spectrum(
+        self, mach: str, point: str, pmode: str, t: int = 0, array_fmt: str = "zlib"
+    ) -> dict:
         """Get a spectrum using the T8 API.
         If no specific timestamp is provided, it returns the last available spectrum.
         """
@@ -94,7 +99,7 @@ class T8:
         ret = self.__get_wave(mach, point, pmode, t, array_fmt)
 
         path = ":".join([mach, point, pmode])
-        factor = ret["factor"]
+        factor = ret.get("factor", 1.0)
         data = decode_array(ret["data"], array_fmt) * factor
         return Wave(
             path=path,
@@ -119,7 +124,7 @@ class T8:
         ret = self.__get_spectrum(mach, point, pmode, t, array_fmt)
 
         path = ":".join([mach, point, pmode])
-        factor = ret["factor"]
+        factor = ret.get("factor", 1.0)
         data = decode_array(ret["data"], array_fmt) * factor
         return Spectrum(
             path=path,

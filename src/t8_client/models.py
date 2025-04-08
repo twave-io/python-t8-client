@@ -12,7 +12,7 @@ class Window(IntEnum):
     hamming = 2
     blackman = 3
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 

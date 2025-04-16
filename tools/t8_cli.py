@@ -7,8 +7,7 @@ from tabulate import tabulate
 
 from t8_client.models import Spectrum, Wave
 from t8_client.t8 import T8
-
-from .utils import format_timestamp, format_timestamps, parse_timestamp
+from t8_client.utils import format_timestamp, format_timestamps, parse_timestamp
 
 DEFAULT_HOST = "http://localhost"
 

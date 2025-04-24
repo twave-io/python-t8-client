@@ -166,10 +166,58 @@ def status(ctx: Context) -> None:
     print_status(status)
 
 
-@click.command()
+@click.group()
+@click.pass_context
+def config(ctx: Context) -> None:
+    """Manage configurations"""
+    pass
+
+
+@config.command(name="list")
+@click.pass_context
+def list_configs_cmd(ctx: Context) -> None:
+    """List configuration IDs"""
+    client = ctx.obj["T8"]
+    try:
+        configs = client.list_configs()
+    except Exception as e:
+        click.secho(f"Error listing configurations: {e!s}", fg="red", err=True)
+        sys.exit(1)
+
+    for conf in configs:
+        if conf != "0":
+            click.echo(conf)
+
+
+@config.command(name="get")
+@click.pass_context
+@click.option("--id", "-i", help="Configuration ID", default="0")
+def get_config_cmd(ctx: Context, id: str) -> None:
+    """Get a specific configuration given its ID and store it in a JSON file."""
+    client = ctx.obj["T8"]
+
+    try:
+        info = client.get_system_info()
+        config = client.get_config(id)
+    except Exception as e:
+        click.secho(e, fg="red", err=True)
+        sys.exit(1)
+
+    out_file = f"conf_{info.full_serial}_{config['uid']}.json"
+    click.echo(f"Saving configuration to {out_file}")
+
+    try:
+        with open(out_file, "w") as f:
+            json.dump(config, f, indent=4)
+    except OSError as e:
+        click.secho(f"Error saving file: {e!s}", fg="red", err=True)
+        sys.exit(1)
+
+
+@config.command(name="proc-modes")
 @click.pass_context
 def proc_modes(ctx: Context) -> None:
-    """List processing modes"""
+    """List all processing modes in the current configuration"""
     client = ctx.obj["T8"]
     try:
         pmodes = client.list_proc_modes()
@@ -179,10 +227,10 @@ def proc_modes(ctx: Context) -> None:
         sys.exit(1)
 
 
-@click.command()
+@config.command(name="params")
 @click.pass_context
 def params(ctx: Context) -> None:
-    """List parameters"""
+    """List all parameters in the current configuration"""
     client = ctx.obj["T8"]
     try:
         params = client.list_params()
@@ -240,54 +288,6 @@ def get_snapshot_cmd(ctx: Context, machine: str, time: str) -> None:
     try:
         with open(out_file, "w") as f:
             json.dump(snap, f, indent=4)
-    except OSError as e:
-        click.secho(f"Error saving file: {e!s}", fg="red", err=True)
-        sys.exit(1)
-
-
-@click.group()
-@click.pass_context
-def config(ctx: Context) -> None:
-    """Manage configurations"""
-    pass
-
-
-@config.command(name="list")
-@click.pass_context
-def list_configs_cmd(ctx: Context) -> None:
-    """List configuration IDs"""
-    client = ctx.obj["T8"]
-    try:
-        configs = client.list_configs()
-    except Exception as e:
-        click.secho(f"Error listing configurations: {e!s}", fg="red", err=True)
-        sys.exit(1)
-
-    for conf in configs:
-        if conf != "0":
-            click.echo(conf)
-
-
-@config.command(name="get")
-@click.pass_context
-@click.option("--id", "-i", help="Configuration ID", default="0")
-def get_config_cmd(ctx: Context, id: str) -> None:
-    """Get a specific configuration given its ID and store it in a JSON file."""
-    client = ctx.obj["T8"]
-
-    try:
-        info = client.get_system_info()
-        config = client.get_config(id)
-    except Exception as e:
-        click.secho(e, fg="red", err=True)
-        sys.exit(1)
-
-    out_file = f"conf_{info.full_serial}_{config['uid']}.json"
-    click.echo(f"Saving configuration to {out_file}")
-
-    try:
-        with open(out_file, "w") as f:
-            json.dump(config, f, indent=4)
     except OSError as e:
         click.secho(f"Error saving file: {e!s}", fg="red", err=True)
         sys.exit(1)
@@ -535,8 +535,6 @@ cli.add_command(info)
 cli.add_command(license)
 cli.add_command(status)
 cli.add_command(config)
-cli.add_command(proc_modes)
-cli.add_command(params)
 cli.add_command(snapshot)  # Add snapshot group command
 cli.add_command(spectrum)  # Add spectrum group command
 cli.add_command(wave)  # Add wave group command

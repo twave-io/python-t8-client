@@ -126,15 +126,54 @@ You can also use both methods together, taking into account that command-line op
 
 #### General Information
 
-- List all parameters:
+- Show the system information:
 
   ```bash
-  t8-cli params
+  t8-cli info
   ```
 
-- List all processing modes:
+- Show the license information:
+
   ```bash
-  t8-cli proc_modes
+  t8-cli license
+  ```
+
+- Show the current device status:
+
+  ```bash
+  t8-cli status
+  ```
+
+#### Configuration commands
+
+- List all parameters in the current configuration:
+
+  ```bash
+  t8-cli config params
+  ```
+
+- List all processing modes in the current configuration:
+
+  ```bash
+  t8-cli config proc-modes
+  ```
+
+- Download the current configuration as a JSON file:
+
+  ```bash
+  t8-cli config get
+  ```
+
+- List all configurations:
+
+  ```bash
+  t8-cli config list
+  ```
+
+- Download a specific configuration by its ID:
+
+  ```bash
+  t8-cli config get --id ConfigID
   ```
 
 #### Working with Snapshots

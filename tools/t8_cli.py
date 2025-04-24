@@ -191,10 +191,17 @@ def get_spectrum(ctx: Context, machine: str, point: str, pmode: str, time: str) 
         sys.exit(1)
 
 
-@click.command()
+@click.group()
+@click.pass_context
+def trend(ctx: Context) -> None:
+    """Get trend data for various entities"""
+    pass
+
+
+@trend.command(name="machine")
 @click.pass_context
 @click.option("--machine", "-M", help="Machine name", required=True)
-def machine_trend(ctx: Context, machine: str) -> None:
+def machine_trend_cmd(ctx: Context, machine: str) -> None:
     """Get machine trend data and save it to a CSV file."""
     client = ctx.obj["T8"]
     try:
@@ -205,10 +212,6 @@ def machine_trend(ctx: Context, machine: str) -> None:
 
     out_file = f"trend_mach_{machine}.csv"
     click.echo(f"Saving machine trend to {out_file}")
-
-    # Print the dtype of each attribute
-    for attr in trend.__dict__:
-        click.echo(f"{attr}: {getattr(trend, attr).dtype}")
 
     data = np.vstack((trend.t, trend.speed, trend.load, trend.state, trend.alarm, trend.strategy)).T
     fmt = ["%d", "%f", "%f", "%d", "%d", "%d"]
@@ -221,11 +224,11 @@ def machine_trend(ctx: Context, machine: str) -> None:
         sys.exit(1)
 
 
-@click.command()
+@trend.command(name="point")
 @click.pass_context
 @click.option("--machine", "-M", help="Machine name", required=True)
 @click.option("--point", "-p", help="Point name", required=True)
-def point_trend(ctx: Context, machine: str, point: str) -> None:
+def point_trend_cmd(ctx: Context, machine: str, point: str) -> None:
     """Get point trend data and save it to a CSV file."""
     client = ctx.obj["T8"]
     try:
@@ -236,10 +239,6 @@ def point_trend(ctx: Context, machine: str, point: str) -> None:
 
     out_file = f"trend_point_{machine}_{point}.csv"
     click.echo(f"Saving point trend to {out_file}")
-
-    # Print the dtype of each attribute
-    for attr in trend.__dict__:
-        click.echo(f"{attr}: {getattr(trend, attr).dtype}")
 
     data = np.vstack((trend.t, trend.alarm, trend.bias)).T
     fmt = ["%d", "%d", "%f"]
@@ -252,12 +251,12 @@ def point_trend(ctx: Context, machine: str, point: str) -> None:
         sys.exit(1)
 
 
-@click.command()
+@trend.command(name="pmode")
 @click.pass_context
 @click.option("--machine", "-M", help="Machine name", required=True)
 @click.option("--point", "-p", help="Point name", required=True)
 @click.option("--pmode", "-m", help="Processing mode", required=True)
-def proc_mode_trend(ctx: Context, machine: str, point: str, pmode: str) -> None:
+def proc_mode_trend_cmd(ctx: Context, machine: str, point: str, pmode: str) -> None:
     """Get processing mode trend data and save it to a CSV file."""
     client = ctx.obj["T8"]
     try:
@@ -268,10 +267,6 @@ def proc_mode_trend(ctx: Context, machine: str, point: str, pmode: str) -> None:
 
     out_file = f"trend_pmode_{machine}_{point}_{pmode}.csv"
     click.echo(f"Saving processing mode trend to {out_file}")
-
-    # Print the dtype of each attribute
-    for attr in trend.__dict__:
-        click.echo(f"{attr}: {getattr(trend, attr).dtype}")
 
     data = np.vstack((trend.t, trend.alarm, trend.mask)).T
     fmt = ["%d", "%d", "%d"]
@@ -284,12 +279,12 @@ def proc_mode_trend(ctx: Context, machine: str, point: str, pmode: str) -> None:
         sys.exit(1)
 
 
-@click.command()
+@trend.command(name="param")
 @click.pass_context
 @click.option("--machine", "-M", help="Machine name", required=True)
 @click.option("--point", "-p", help="Point name", required=True)
 @click.option("--param", help="Parameter name", required=True)
-def param_trend(ctx: Context, machine: str, point: str, param: str) -> None:
+def param_trend_cmd(ctx: Context, machine: str, point: str, param: str) -> None:
     """Get parameter trend data and save it to a CSV file."""
     client = ctx.obj["T8"]
     try:
@@ -300,10 +295,6 @@ def param_trend(ctx: Context, machine: str, point: str, param: str) -> None:
 
     out_file = f"trend_param_{machine}_{point}_{param}.csv"
     click.echo(f"Saving parameter trend to {out_file}")
-
-    # Print the dtype of each attribute
-    for attr in trend.__dict__:
-        click.echo(f"{attr}: {getattr(trend, attr).dtype}")
 
     data = np.vstack((trend.t, trend.value, trend.alarm, trend.unit)).T
     fmt = ["%d", "%f", "%d", "%d"]
@@ -322,10 +313,7 @@ cli.add_command(list_waves)
 cli.add_command(get_wave)
 cli.add_command(list_spectra)
 cli.add_command(get_spectrum)
-cli.add_command(machine_trend)
-cli.add_command(point_trend)
-cli.add_command(proc_mode_trend)
-cli.add_command(param_trend)
+cli.add_command(trend)  # Add the new trend group command
 
 
 cli(auto_envvar_prefix="T8_")

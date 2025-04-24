@@ -4,6 +4,83 @@ from numpy.typing import NDArray
 from pydantic import BaseModel
 
 
+class LicenseFeature(BaseModel):
+    """License feature information."""
+
+    abbrev: str
+    desc: str
+    enabled: bool
+    name: str
+    number: int
+
+
+class License(BaseModel):
+    """License information."""
+
+    changed_at: int
+    expires_at: int
+    features: list[LicenseFeature]
+
+
+class SystemInfo(BaseModel):
+    """System information."""
+
+    serial: int
+    full_serial: str
+    model: str
+    variant: str
+    version: str
+    revision: str
+    hw_version: int
+    board_model: str
+    board_revision: int
+    cpu_serial: int
+    host: str
+    enable_ntp: bool
+    exp_module: str | None
+    exp_serial: str | None
+    installed_time: int
+    license: License | None
+
+
+class MountInfo(BaseModel):
+    """Mount information."""
+
+    device: str
+    path: str
+    total: int
+    used: int
+    volatile: bool
+
+
+class Status(BaseModel):
+    """System status information."""
+
+    # Time
+    timestamp: int
+    up_time: float
+    idle_time: float
+
+    # Network
+    host: str
+    hw_addr: str
+    ip_addr: str
+    gateway: str
+    prefix_length: int
+    dhcp_enabled: bool
+
+    # Storage
+    data_mount: MountInfo
+    rw_mount: MountInfo
+
+    # Temperature and power
+    board_temp: float
+    cpu_temp: float
+    vbat: float
+    vinput: float
+    fan_pwm: int
+
+
 class Window(IntEnum):
     """Window types for spectrum analysis."""
 

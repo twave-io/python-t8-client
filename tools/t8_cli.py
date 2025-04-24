@@ -6,7 +6,7 @@ import numpy as np
 from click import Context
 from tabulate import tabulate
 
-from t8_client.models import Spectrum, Wave
+from t8_client.models import License, MountInfo, Spectrum, Status, SystemInfo, Wave
 from t8_client.t8 import T8
 from t8_client.utils import format_timestamp, format_timestamps, parse_timestamp
 
@@ -16,6 +16,96 @@ CONTEXT_SETTINGS = {
     "help_option_names": ["-h", "--help"],
     "show_default": True,
 }
+
+
+def print_system_info(info: SystemInfo) -> None:
+    """Print system information."""
+    click.echo("T8 System Information:")
+    click.echo(f"Serial: \t{info.full_serial}")
+    click.echo(f"Model: \t\t{info.model} {info.variant}")
+    click.echo(f"Version: \t{info.version}")
+    click.echo(f"Revision: \t{info.revision}")
+    click.echo(f"HW Version: \t{info.hw_version}")
+    click.echo(f"Host: \t\t{info.host}")
+
+    if info.exp_module:
+        click.echo(f"Exp Module: \t{info.exp_module} ({info.exp_serial})")
+
+
+def print_mount_info(mount: MountInfo) -> None:
+    """Print mount information."""
+    click.echo(f"    Device: \t{mount.device}")
+    click.echo(f"    Path: \t{mount.path}")
+    click.echo(f"    Total: \t{mount.total} bytes")
+    click.echo(f"    Used: \t{mount.used} bytes")
+    click.echo(f"    Volatile: \t{mount.volatile}")
+
+
+def print_status(status: Status) -> None:
+    """Print status information."""
+    click.echo("T8 Status:")
+    click.echo(f"Time: \t\t{format_timestamp(status.timestamp)}")
+    click.echo(f"Uptime: \t{status.up_time}")
+    click.echo(f"Board Temp: \t{status.board_temp} °C")
+    click.echo(f"CPU Temp: \t{status.cpu_temp} °C")
+    click.echo(f"Input Voltage: \t{status.vinput} V")
+    click.echo(f"Fan PWM: \t{status.fan_pwm}")
+    click.echo(f"Host: \t\t{status.host}")
+    click.echo(f"HW Addr: \t{status.hw_addr}")
+    click.echo(f"IP Addr: \t{status.ip_addr}")
+    click.echo(f"Gateway: \t{status.gateway}")
+    click.echo(f"DHCP Enabled: \t{status.dhcp_enabled}")
+    click.echo("Data Mount:")
+    print_mount_info(status.data_mount)
+
+
+def print_license(lic: License, serial: str) -> None:
+    """Print license information."""
+    print("License Information:")
+    click.echo(f"Serial: \t{serial}")
+    click.echo(f"Changed at: \t{format_timestamp(lic.changed_at)}")
+    click.echo(f"Expires at: \t{format_timestamp(lic.expires_at)}")
+    click.echo("\nFeatures:")
+
+    features = [dict(feature) for feature in lic.features]
+    features.sort(key=lambda x: x.get("number", 0))
+    click.echo(tabulate(features, headers="keys"))
+
+
+def print_snapshot(snap: dict) -> None:
+    """Print snapshot information."""
+    click.echo(f"Tag: \t\t{snap['tag']}")
+    click.echo(f"Timestamp: \t{format_timestamp(snap['t'])}")
+    click.echo(f"Conf ID: \t{snap['conf_id']}")
+    click.echo(f"Speed: \t\t{snap['speed']} Hz")
+    click.echo(f"State: \t\t{snap['state_id']}")
+
+
+def print_wave(wave: Wave) -> None:
+    """Print wave information."""
+    duration = len(wave.data) / wave.sample_rate
+
+    click.echo(f"Path: \t\t{wave.path}")
+    click.echo(f"Speed: \t\t{wave.speed} Hz")
+    click.echo(f"Timestamp: \t{format_timestamp(wave.t)}")
+    click.echo(f"Snapshot: \t{format_timestamp(wave.snap_t)}")
+    click.echo(f"Unit ID: \t{wave.unit_id}")
+    click.echo(f"Sample rate: \t{wave.sample_rate} Hz")
+    click.echo(f"Samples: \t{len(wave.data)}")
+    click.echo(f"Duration: \t{duration:.3f} s")
+
+
+def print_spectrum(sp: Spectrum) -> None:
+    """Print spectrum information."""
+    click.echo(f"Path: \t\t{sp.path}")
+    click.echo(f"Speed: \t\t{sp.speed} Hz")
+    click.echo(f"Timestamp: \t{format_timestamp(sp.t)} s")
+    click.echo(f"Snapshot: \t{format_timestamp(sp.snap_t)} s")
+    click.echo(f"Unit ID: \t{sp.unit_id}")
+    click.echo(f"Max. freq: \t{sp.max_freq} Hz")
+    click.echo(f"Min. freq: \t{sp.min_freq} Hz")
+    click.echo(f"Window: \t{sp.window}")
+    click.echo(f"Bins: \t\t{len(sp.data)}")
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -32,6 +122,48 @@ def cli(ctx: Context, host: str, user: str, passw: str) -> None:
     except Exception as e:
         click.secho(f"Error connecting to T8 API: {e!s}", fg="red", err=True)
         sys.exit(1)
+
+
+@click.command()
+@click.pass_context
+def info(ctx: Context) -> None:
+    """Get the T8 device information"""
+    client = ctx.obj["T8"]
+    try:
+        info = client.get_system_info()
+    except Exception as e:
+        click.secho(f"Error retrieving info: {e!s}", fg="red", err=True)
+        sys.exit(1)
+
+    print_system_info(info)
+
+
+@click.command()
+@click.pass_context
+def license(ctx: Context) -> None:
+    """Show the license information"""
+    client = ctx.obj["T8"]
+    try:
+        info = client.get_system_info()
+    except Exception as e:
+        click.secho(f"Error retrieving info: {e!s}", fg="red", err=True)
+        sys.exit(1)
+
+    print_license(info.license, info.full_serial)
+
+
+@click.command()
+@click.pass_context
+def status(ctx: Context) -> None:
+    """Get the T8 status"""
+    client = ctx.obj["T8"]
+    try:
+        status = client.get_status()
+    except Exception as e:
+        click.secho(f"Error retrieving status: {e!s}", fg="red", err=True)
+        sys.exit(1)
+
+    print_status(status)
 
 
 @click.command()
@@ -58,15 +190,6 @@ def params(ctx: Context) -> None:
     except Exception as e:
         click.secho(f"Error retrieving parameters: {e!s}", fg="red", err=True)
         sys.exit(1)
-
-
-def print_snapshot(snap: dict) -> None:
-    """Print snapshot information."""
-    click.echo(f"Tag: \t\t{snap['tag']}")
-    click.echo(f"Timestamp: \t{format_timestamp(snap['t'])}")
-    click.echo(f"Conf ID: \t{snap['conf_id']}")
-    click.echo(f"Speed: \t\t{snap['speed']} Hz")
-    click.echo(f"State: \t\t{snap['state_id']}")
 
 
 @click.group()
@@ -122,18 +245,52 @@ def get_snapshot_cmd(ctx: Context, machine: str, time: str) -> None:
         sys.exit(1)
 
 
-def print_wave(wave: Wave) -> None:
-    """Print wave information."""
-    duration = len(wave.data) / wave.sample_rate
+@click.group()
+@click.pass_context
+def config(ctx: Context) -> None:
+    """Manage configurations"""
+    pass
 
-    click.echo(f"Path: \t\t{wave.path}")
-    click.echo(f"Speed: \t\t{wave.speed} Hz")
-    click.echo(f"Timestamp: \t{format_timestamp(wave.t)}")
-    click.echo(f"Snapshot: \t{format_timestamp(wave.snap_t)}")
-    click.echo(f"Unit ID: \t{wave.unit_id}")
-    click.echo(f"Sample rate: \t{wave.sample_rate} Hz")
-    click.echo(f"Samples: \t{len(wave.data)}")
-    click.echo(f"Duration: \t{duration:.3f} s")
+
+@config.command(name="list")
+@click.pass_context
+def list_configs_cmd(ctx: Context) -> None:
+    """List configuration IDs"""
+    client = ctx.obj["T8"]
+    try:
+        configs = client.list_configs()
+    except Exception as e:
+        click.secho(f"Error listing configurations: {e!s}", fg="red", err=True)
+        sys.exit(1)
+
+    for conf in configs:
+        if conf != "0":
+            click.echo(conf)
+
+
+@config.command(name="get")
+@click.pass_context
+@click.option("--id", "-i", help="Configuration ID", default="0")
+def get_config_cmd(ctx: Context, id: str) -> None:
+    """Get a specific configuration given its ID and store it in a JSON file."""
+    client = ctx.obj["T8"]
+
+    try:
+        info = client.get_system_info()
+        config = client.get_config(id)
+    except Exception as e:
+        click.secho(e, fg="red", err=True)
+        sys.exit(1)
+
+    out_file = f"conf_{info.full_serial}_{config['uid']}.json"
+    click.echo(f"Saving configuration to {out_file}")
+
+    try:
+        with open(out_file, "w") as f:
+            json.dump(config, f, indent=4)
+    except OSError as e:
+        click.secho(f"Error saving file: {e!s}", fg="red", err=True)
+        sys.exit(1)
 
 
 @click.group()
@@ -153,11 +310,12 @@ def list_waves_cmd(ctx: Context, machine: str, point: str, pmode: str) -> None:
     client = ctx.obj["T8"]
     try:
         timestamps = client.list_waves(machine, point, pmode)
-        for t in format_timestamps(timestamps):
-            click.echo(t)
     except Exception as e:
         click.secho(f"Error listing waves: {e!s}", fg="red", err=True)
         sys.exit(1)
+
+    for t in format_timestamps(timestamps):
+        click.echo(t)
 
 
 @wave.command(name="get")
@@ -195,19 +353,6 @@ def get_wave_cmd(ctx: Context, machine: str, point: str, pmode: str, time: str) 
     except OSError as e:
         click.secho(f"Error saving file: {e!s}", fg="red", err=True)
         sys.exit(1)
-
-
-def print_spectrum(sp: Spectrum) -> None:
-    """Print spectrum information."""
-    click.echo(f"Path: \t\t{sp.path}")
-    click.echo(f"Speed: \t\t{sp.speed} Hz")
-    click.echo(f"Timestamp: \t{format_timestamp(sp.t)} s")
-    click.echo(f"Snapshot: \t{format_timestamp(sp.snap_t)} s")
-    click.echo(f"Unit ID: \t{sp.unit_id}")
-    click.echo(f"Max. freq: \t{sp.max_freq} Hz")
-    click.echo(f"Min. freq: \t{sp.min_freq} Hz")
-    click.echo(f"Window: \t{sp.window}")
-    click.echo(f"Bins: \t\t{len(sp.data)}")
 
 
 @click.group()
@@ -386,6 +531,10 @@ def param_trend_cmd(ctx: Context, machine: str, point: str, param: str) -> None:
         sys.exit(1)
 
 
+cli.add_command(info)
+cli.add_command(license)
+cli.add_command(status)
+cli.add_command(config)
 cli.add_command(proc_modes)
 cli.add_command(params)
 cli.add_command(snapshot)  # Add snapshot group command

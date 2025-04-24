@@ -35,8 +35,8 @@ This project uses [uv](https://docs.astral.sh/uv/) for managing virtual environm
 1. Clone the repository and navigate to the project directory:
 
 ```bash
-git clone https://github.com/t8/t8-python-client.git
-cd t8-python-client
+git clone https://github.com/twave-io/python-t8-client.git
+cd python-t8-client
 ```
 
 2. Create a virtual environment using uv:
@@ -67,7 +67,7 @@ The library provides a simple interface for interacting with the T8 API:
 from t8_client.t8 import T8
 
 # Initialize client
-client = T8("http://localhost", "admin", "password")
+client = T8("https://lafs15.mirror.twave.io/lafs15", "admin", "password")
 
 # Get available parameters
 params = client.list_params()
@@ -107,20 +107,20 @@ All commands require connection parameters to access the T8 API. You can provide
 1. Command-line options:
 
    ```bash
-   t8-cli --host http://t8-server --user admin --passw password [command]
+   t8-cli --host https://lafs15.mirror.twave.io/lafs15 --user admin --passw password [command]
    ```
 
 2. Environment variables (recommended):
 
    ```bash
-   export T8_HOST=http://t8-server
+   export T8_HOST=https://lafs15.mirror.twave.io/lafs15
    export T8_USER=admin
    export T8_PASSW=password
    ```
 
 You can also use both methods together, taking into account that command-line options will override environment variables.
 
-**Note:** The host URL must include the protocol (http or https) and the full base URL path.
+> **Note:** The host URL must include the protocol (http or https) and the full base URL path, as shown in the example.
 
 ### Available Commands
 

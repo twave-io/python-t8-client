@@ -64,9 +64,9 @@ def print_snapshot(snap: dict) -> None:
     """Print snapshot information."""
     click.echo(f"Tag: \t\t{snap['tag']}")
     click.echo(f"Timestamp: \t{format_timestamp(snap['t'])}")
+    click.echo(f"Conf ID: \t{snap['conf_id']}")
     click.echo(f"Speed: \t\t{snap['speed']} Hz")
     click.echo(f"State: \t\t{snap['state_id']}")
-    click.echo(f"Conf ID: \t{snap['conf_id']}")
 
 
 @click.group()

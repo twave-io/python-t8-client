@@ -1,7 +1,7 @@
 # TWave T8 API Client
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python Checks](https://github.com/t8/t8-python-client/actions/workflows/python-checks.yml/badge.svg)](https://github.com/t8/t8-python-client/actions/workflows/python-checks.yml)
+[![Python Checks](https://github.com/twave-io/t8-python-client/actions/workflows/python-checks.yml/badge.svg)](https://github.com/twave-io/python-t8-client/actions/workflows/python-checks.yml)
 
 A comprehensive Python client for interacting with the TWave T8 REST API.
 

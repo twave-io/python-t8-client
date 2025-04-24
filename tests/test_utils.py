@@ -7,20 +7,28 @@ from t8_client.utils import (
     decode_array,
     format_timestamp,
     format_timestamps,
+    get_link_timestamp,
     parse_pmode_item,
-    parse_wave_item,
 )
 
 
-def test_parse_wave_item():
-    link = {
-        "_links": {
-            "self": "http://lzfs45.mirror.twave.io/lzfs45/rest/waves/LP_Turbine/MAD32CY005/AM2/1554907724"
-        }
-    }
-    expected = 1554907724
+def test_get_link_timestamp():
+    links = [
+        {
+            "_links": {
+                "self": "http://lzfs45.mirror.twave.io/lzfs45/rest/waves/LP_Turbine/MAD32CY005/AM2/1554907724"
+            },
+        },
+        {
+            "_links": {
+                "self": "http://lzfs45.mirror.twave.io/lzfs45/rest/snapshots/LP_Turbine/1554892596"
+            }
+        },
+    ]
 
-    assert parse_wave_item(link) == expected
+    expected = [1554907724, 1554892596]
+    for link, exp in zip(links, expected, strict=False):
+        assert get_link_timestamp(link) == exp
 
 
 def test_parse_pmode_item():

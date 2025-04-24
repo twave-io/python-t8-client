@@ -2,7 +2,7 @@ import numpy as np
 import requests
 
 from .models import MachineTrend, ParamTrend, PointTrend, ProcModeTrend, Spectrum, Wave
-from .utils import decode_array, parse_pmode_item, parse_wave_item
+from .utils import decode_array, get_link_timestamp, parse_pmode_item
 
 
 class T8:
@@ -44,6 +44,16 @@ class T8:
     def __list_waves(self, mach: str, point: str, pmode: str) -> dict:
         """List available waves for a given machine, point, and processing mode."""
         return self.__request(f"waves/{mach}/{point}/{pmode}")
+
+    def __list_snapshots(self, mach: str) -> dict:
+        """List available snapshots for a given machine."""
+        return self.__request(f"snapshots/{mach}")
+
+    def __get_snapshot(self, mach: str, t: int = 0) -> dict:
+        """Get a snapshot using the T8 API.
+        If no specific timestamp is provided, it returns the last available snapshot.
+        """
+        return self.__request(f"snapshots/{mach}/{t}")
 
     def __get_wave(
         self, mach: str, point: str, pmode: str, t: int = 0, array_fmt: str = "zlib"
@@ -97,6 +107,18 @@ class T8:
         params = [parse_pmode_item(link) for link in items]
         return sorted(params, key=lambda x: (x["machine"], x["point"], x["tag"]))
 
+    def list_snapshots(self, mach: str) -> list[int]:
+        """List available snapshots for a given machine."""
+        links = self.__list_snapshots(mach)
+        items = links["_items"]
+        return [get_link_timestamp(link) for link in items]
+
+    def get_snapshot(self, mach: str, t: int = 0) -> dict:
+        """Get a snapshot using the T8 API.
+        If no specific timestamp is provided, it returns the last available snapshot.
+        """
+        return self.__get_snapshot(mach, t)
+
     def list_wave_modes(self) -> list[str]:
         """List available processing modes."""
         links = self.__list_wave_modes()
@@ -107,7 +129,7 @@ class T8:
         """List available waves for a given machine, point, and processing mode."""
         links = self.__list_waves(mach, point, pmode)
         items = links["_items"]
-        return [parse_wave_item(link) for link in items]
+        return [get_link_timestamp(link) for link in items]
 
     def get_wave(
         self, mach: str, point: str, pmode: str, t: int = 0, array_fmt: str = "zint"
@@ -132,7 +154,7 @@ class T8:
         """List available spectra for a given machine, point, and processing mode."""
         links = self.__list_spectra(mach, point, pmode)
         items = links["_items"]
-        return [parse_wave_item(link) for link in items]
+        return [get_link_timestamp(link) for link in items]
 
     def get_spectrum(
         self, mach: str, point: str, pmode: str, t: int = 0, array_fmt: str = "zint"
@@ -202,3 +224,11 @@ class T8:
             alarm=decode_array(data["alarm.B"], fmt, dtype=np.uint8),
             unit=decode_array(data["unit.H"], fmt, dtype=np.uint16),
         )
+
+    def get_status(self) -> dict:
+        """Get the status of the T8 device."""
+        return self.__request("status")
+
+    def get_system_info(self) -> dict:
+        """Get system information."""
+        return self.__request("system")

@@ -1,3 +1,4 @@
+import json
 import sys
 
 import click
@@ -59,6 +60,68 @@ def params(ctx: Context) -> None:
         sys.exit(1)
 
 
+def print_snapshot(snap: dict) -> None:
+    """Print snapshot information."""
+    click.echo(f"Tag: \t\t{snap['tag']}")
+    click.echo(f"Timestamp: \t{format_timestamp(snap['t'])}")
+    click.echo(f"Speed: \t\t{snap['speed']} Hz")
+    click.echo(f"State: \t\t{snap['state_id']}")
+    click.echo(f"Conf ID: \t{snap['conf_id']}")
+
+
+@click.group()
+@click.pass_context
+def snapshot(ctx: Context) -> None:
+    """Manage snapshots"""
+    pass
+
+
+@snapshot.command(name="list")
+@click.pass_context
+@click.option("--machine", "-M", help="Machine name", required=True)
+def list_snapshots_cmd(ctx: Context, machine: str) -> None:
+    """List snapshots"""
+    client = ctx.obj["T8"]
+    try:
+        timestamps = client.list_snapshots(machine)
+        for t in format_timestamps(timestamps):
+            click.echo(t)
+    except Exception as e:
+        click.secho(f"Error listing snapshots: {e!s}", fg="red", err=True)
+        sys.exit(1)
+
+
+@snapshot.command(name="get")
+@click.pass_context
+@click.option("--machine", "-M", help="Machine name", required=True)
+@click.option("--time", "-t", help="Timestamp", default="1970-01-01T00:00:00Z")
+def get_snapshot_cmd(ctx: Context, machine: str, time: str) -> None:
+    """Get a snapshot at a specific timestamp."""
+    try:
+        t = parse_timestamp(time)
+    except ValueError:
+        click.secho(f"Invalid timestamp format: {time}", fg="red", err=True)
+        sys.exit(1)
+
+    client = ctx.obj["T8"]
+    try:
+        snap = client.get_snapshot(machine, t)
+    except Exception as e:
+        click.secho(f"Error retrieving snapshot: {e!s}", fg="red", err=True)
+        sys.exit(1)
+
+    print_snapshot(snap)
+    out_file = f"ss_{machine}_{int(snap['t'])}.json"
+    click.echo(f"Saving spectrum to {out_file}")
+
+    try:
+        with open(out_file, "w") as f:
+            json.dump(snap, f, indent=4)
+    except OSError as e:
+        click.secho(f"Error saving file: {e!s}", fg="red", err=True)
+        sys.exit(1)
+
+
 def print_wave(wave: Wave) -> None:
     """Print wave information."""
     duration = len(wave.data) / wave.sample_rate
@@ -73,23 +136,10 @@ def print_wave(wave: Wave) -> None:
     click.echo(f"Duration: \t{duration:.3f} s")
 
 
-def print_spectrum(sp: Spectrum) -> None:
-    """Print spectrum information."""
-    click.echo(f"Path: \t\t{sp.path}")
-    click.echo(f"Speed: \t\t{sp.speed} Hz")
-    click.echo(f"Timestamp: \t{format_timestamp(sp.t)} s")
-    click.echo(f"Snapshot: \t{format_timestamp(sp.snap_t)} s")
-    click.echo(f"Unit ID: \t{sp.unit_id}")
-    click.echo(f"Max. freq: \t{sp.max_freq} Hz")
-    click.echo(f"Min. freq: \t{sp.min_freq} Hz")
-    click.echo(f"Window: \t{sp.window}")
-    click.echo(f"Bins: \t\t{len(sp.data)}")
-
-
 @click.group()
 @click.pass_context
 def wave(ctx: Context) -> None:
-    """Manage wave data"""
+    """Manage waveforms"""
     pass
 
 
@@ -147,10 +197,23 @@ def get_wave_cmd(ctx: Context, machine: str, point: str, pmode: str, time: str) 
         sys.exit(1)
 
 
+def print_spectrum(sp: Spectrum) -> None:
+    """Print spectrum information."""
+    click.echo(f"Path: \t\t{sp.path}")
+    click.echo(f"Speed: \t\t{sp.speed} Hz")
+    click.echo(f"Timestamp: \t{format_timestamp(sp.t)} s")
+    click.echo(f"Snapshot: \t{format_timestamp(sp.snap_t)} s")
+    click.echo(f"Unit ID: \t{sp.unit_id}")
+    click.echo(f"Max. freq: \t{sp.max_freq} Hz")
+    click.echo(f"Min. freq: \t{sp.min_freq} Hz")
+    click.echo(f"Window: \t{sp.window}")
+    click.echo(f"Bins: \t\t{len(sp.data)}")
+
+
 @click.group()
 @click.pass_context
 def spectrum(ctx: Context) -> None:
-    """Manage spectrum data"""
+    """Manage spectra"""
     pass
 
 
@@ -325,8 +388,9 @@ def param_trend_cmd(ctx: Context, machine: str, point: str, param: str) -> None:
 
 cli.add_command(proc_modes)
 cli.add_command(params)
-cli.add_command(wave)  # Add wave group command
+cli.add_command(snapshot)  # Add snapshot group command
 cli.add_command(spectrum)  # Add spectrum group command
+cli.add_command(wave)  # Add wave group command
 cli.add_command(trend)  # Add trend group command
 
 

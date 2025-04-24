@@ -48,7 +48,7 @@ def format_timestamps(timestamps: list[int]) -> list[str]:
     return [format_timestamp(t) for t in timestamps if t]
 
 
-def parse_wave_item(item: dict) -> int:
+def get_link_timestamp(item: dict) -> int:
     """Parse a json item containing a link to a wave and return its timestamp.
 
     Example of a wave link:

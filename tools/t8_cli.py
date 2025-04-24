@@ -59,23 +59,6 @@ def params(ctx: Context) -> None:
         sys.exit(1)
 
 
-@click.command()
-@click.pass_context
-@click.option("--machine", "-M", help="Machine name", required=True)
-@click.option("--point", "-p", help="Point name", required=True)
-@click.option("--pmode", "-m", help="Processing mode", required=True)
-def list_waves(ctx: Context, machine: str, point: str, pmode: str) -> None:
-    """List waves"""
-    client = ctx.obj["T8"]
-    try:
-        timestamps = client.list_waves(machine, point, pmode)
-        for t in format_timestamps(timestamps):
-            click.echo(t)
-    except Exception as e:
-        click.secho(f"Error listing waves: {e!s}", fg="red", err=True)
-        sys.exit(1)
-
-
 def print_wave(wave: Wave) -> None:
     """Print wave information."""
     duration = len(wave.data) / wave.sample_rate
@@ -103,13 +86,37 @@ def print_spectrum(sp: Spectrum) -> None:
     click.echo(f"Bins: \t\t{len(sp.data)}")
 
 
-@click.command()
+@click.group()
+@click.pass_context
+def wave(ctx: Context) -> None:
+    """Manage wave data"""
+    pass
+
+
+@wave.command(name="list")
+@click.pass_context
+@click.option("--machine", "-M", help="Machine name", required=True)
+@click.option("--point", "-p", help="Point name", required=True)
+@click.option("--pmode", "-m", help="Processing mode", required=True)
+def list_waves_cmd(ctx: Context, machine: str, point: str, pmode: str) -> None:
+    """List waves"""
+    client = ctx.obj["T8"]
+    try:
+        timestamps = client.list_waves(machine, point, pmode)
+        for t in format_timestamps(timestamps):
+            click.echo(t)
+    except Exception as e:
+        click.secho(f"Error listing waves: {e!s}", fg="red", err=True)
+        sys.exit(1)
+
+
+@wave.command(name="get")
 @click.pass_context
 @click.option("--machine", "-M", help="Machine name", required=True)
 @click.option("--point", "-p", help="Point name", required=True)
 @click.option("--pmode", "-m", help="Processing mode", required=True)
 @click.option("--time", "-t", help="Timestamp", default="1970-01-01T00:00:00Z")
-def get_wave(ctx: Context, machine: str, point: str, pmode: str, time: str) -> None:
+def get_wave_cmd(ctx: Context, machine: str, point: str, pmode: str, time: str) -> None:
     """Get a wave at a specific timestamp and save it to a CSV file."""
     try:
         t = parse_timestamp(time)
@@ -130,21 +137,29 @@ def get_wave(ctx: Context, machine: str, point: str, pmode: str, time: str) -> N
 
     out_file = f"wf_{machine}_{point}_{pmode}_{int(wave.snap_t)}.csv"
     click.echo(f"Saving waveform to {out_file}")
+    header = "Time,Value"
 
     data = np.vstack((times, wave.data)).T
     try:
-        np.savetxt(out_file, data, delimiter=",", fmt="%f")
+        np.savetxt(out_file, data, delimiter=",", fmt="%f", header=header)
     except OSError as e:
         click.secho(f"Error saving file: {e!s}", fg="red", err=True)
         sys.exit(1)
 
 
-@click.command()
+@click.group()
+@click.pass_context
+def spectrum(ctx: Context) -> None:
+    """Manage spectrum data"""
+    pass
+
+
+@spectrum.command(name="list")
 @click.pass_context
 @click.option("--machine", "-M", help="Machine name", required=True)
 @click.option("--point", "-p", help="Point name", required=True)
 @click.option("--pmode", "-m", help="Processing mode", required=True)
-def list_spectra(ctx: Context, machine: str, point: str, pmode: str) -> None:
+def list_spectra_cmd(ctx: Context, machine: str, point: str, pmode: str) -> None:
     """List spectra"""
     client = ctx.obj["T8"]
     try:
@@ -156,13 +171,13 @@ def list_spectra(ctx: Context, machine: str, point: str, pmode: str) -> None:
         sys.exit(1)
 
 
-@click.command()
+@spectrum.command(name="get")
 @click.pass_context
 @click.option("--machine", "-M", help="Machine name", required=True)
 @click.option("--point", "-p", help="Point name", required=True)
 @click.option("--pmode", "-m", help="Processing mode", required=True)
 @click.option("--time", "-t", help="Timestamp", default="1970-01-01T00:00:00Z")
-def get_spectrum(ctx: Context, machine: str, point: str, pmode: str, time: str) -> None:
+def get_spectrum_cmd(ctx: Context, machine: str, point: str, pmode: str, time: str) -> None:
     """Get a spectrum at a specific timestamp and save it to a CSV file."""
     try:
         t = parse_timestamp(time)
@@ -182,10 +197,11 @@ def get_spectrum(ctx: Context, machine: str, point: str, pmode: str, time: str) 
 
     out_file = f"sp_{machine}_{point}_{pmode}_{int(sp.snap_t)}.csv"
     click.echo(f"Saving spectrum to {out_file}")
+    header = "Frequency,RMS"
 
     data = np.vstack((freqs, sp.data)).T
     try:
-        np.savetxt(out_file, data, delimiter=",", fmt="%f")
+        np.savetxt(out_file, data, delimiter=",", fmt="%f", header=header)
     except OSError as e:
         click.secho(f"Error saving file: {e!s}", fg="red", err=True)
         sys.exit(1)
@@ -309,11 +325,9 @@ def param_trend_cmd(ctx: Context, machine: str, point: str, param: str) -> None:
 
 cli.add_command(proc_modes)
 cli.add_command(params)
-cli.add_command(list_waves)
-cli.add_command(get_wave)
-cli.add_command(list_spectra)
-cli.add_command(get_spectrum)
-cli.add_command(trend)  # Add the new trend group command
+cli.add_command(wave)  # Add wave group command
+cli.add_command(spectrum)  # Add spectrum group command
+cli.add_command(trend)  # Add trend group command
 
 
 cli(auto_envvar_prefix="T8_")

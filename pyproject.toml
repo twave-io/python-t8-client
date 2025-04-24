@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "T8 API Client"
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "click>=8.1.8",
     "matplotlib>=3.10.1",
@@ -18,7 +18,12 @@ dependencies = [
 [project.scripts]
 t8-cli = "tools.t8_cli:cli"
 
+# Keep dependency-groups for uv compatibility
 [dependency-groups]
+dev = ["pytest>=8.3.5", "ruff>=0.10.0"]
+
+# Add standard optional dependencies for pip and GitHub Actions compatibility
+[project.optional-dependencies]
 dev = ["pytest>=8.3.5", "ruff>=0.10.0"]
 
 [build-system]

@@ -1,5 +1,8 @@
 # TWave T8 API Client
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Checks](https://github.com/twave-io/python-t8-client/actions/workflows/python-checks.yml/badge.svg)](https://github.com/twave-io/python-t8-client/actions/workflows/python-checks.yml)
+
 A comprehensive Python client for interacting with the TWave T8 REST API.
 
 The [T8](https://twave.io/en/solutions/t8) is an advanced vibration analysis and condition monitoring system designed for industrial applications.

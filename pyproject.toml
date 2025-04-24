@@ -24,6 +24,9 @@ dev = ["pytest>=8.3.5", "ruff>=0.10.0"]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.ruff]
+line-length = 100
+
 [tool.ruff.lint]
 select = [
     "ARG", # flake8-unused-arguments

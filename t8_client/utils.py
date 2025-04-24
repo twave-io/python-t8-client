@@ -5,9 +5,10 @@ from datetime import UTC, datetime
 from zlib import decompress
 
 import numpy as np
+from numpy.typing import DTypeLike, NDArray
 
 
-def decode_array(raw: bytes, fmt: str = "zint") -> np.ndarray:
+def decode_array(raw: bytes, fmt: str = "zint", dtype: DTypeLike = np.float32) -> NDArray:
     """Decode a base64-encoded binary array into a numpy array.
 
     The format of the array is specified by the fmt parameter.
@@ -16,14 +17,14 @@ def decode_array(raw: bytes, fmt: str = "zint") -> np.ndarray:
 
     if fmt == "zint":
         d = decompress(data)
-        return np.frombuffer(d, dtype=np.int16).astype(np.float32)
+        return np.frombuffer(d, dtype=np.int16).astype(dtype)
 
     if fmt == "zlib":
         d = decompress(data)
-        return np.frombuffer(d, dtype=np.float32)
+        return np.frombuffer(d, dtype)
 
     if fmt == "b64":
-        return np.frombuffer(data, dtype=np.float32)
+        return np.frombuffer(data, dtype)
 
     msg = f"Unknown array format {fmt}"
     raise ValueError(msg)

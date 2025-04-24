@@ -1,6 +1,7 @@
+import numpy as np
 import requests
 
-from .models import Spectrum, Wave
+from .models import MachineTrend, ParamTrend, PointTrend, ProcModeTrend, Spectrum, Wave
 from .utils import decode_array, parse_pmode_item, parse_wave_item
 
 
@@ -62,9 +63,25 @@ class T8:
         """Get a spectrum using the T8 API.
         If no specific timestamp is provided, it returns the last available spectrum.
         """
-        return self.__request(
-            f"spectra/{mach}/{point}/{pmode}/{t}?array_fmt={array_fmt}"
-        )
+        return self.__request(f"spectra/{mach}/{point}/{pmode}/{t}?array_fmt={array_fmt}")
+
+    def __get_machine_trend(self, mach: str, array_fmt: str = "zlib") -> dict:
+        """Get machine trend data."""
+        return self.__request(f"trends/mach/{mach}?array_fmt={array_fmt}")
+
+    def __get_point_trend(self, mach: str, point: str, array_fmt: str = "zlib") -> dict:
+        """Get point trend data."""
+        return self.__request(f"trends/point/{mach}/{point}?array_fmt={array_fmt}")
+
+    def __get_proc_mode_trend(
+        self, mach: str, point: str, pmode: str, array_fmt: str = "zlib"
+    ) -> dict:
+        """Get processing mode trend data."""
+        return self.__request(f"trends/pmode/{mach}/{point}/{pmode}?array_fmt={array_fmt}")
+
+    def __get_param_trend(self, mach: str, point: str, param: str, array_fmt: str = "zlib") -> dict:
+        """Get parameter trend data."""
+        return self.__request(f"trends/param/{mach}/{point}/{param}?array_fmt={array_fmt}")
 
     def list_proc_modes(self) -> list[dict]:
         """List available processing modes."""
@@ -136,4 +153,52 @@ class T8:
             max_freq=ret["max_freq"],
             data=data,
             window=ret["window"],
+        )
+
+    def get_machine_trend(self, mach: str) -> MachineTrend:
+        """Get machine trend data."""
+        data = self.__get_machine_trend(mach)
+        fmt = "zlib"
+
+        return MachineTrend(
+            t=decode_array(data["t.I"], fmt, dtype=np.uint32),
+            speed=decode_array(data["speed.f"], fmt),
+            load=decode_array(data["load.f"], fmt),
+            alarm=decode_array(data["alarm.B"], fmt, dtype=np.uint8),
+            state=decode_array(data["state.B"], fmt, dtype=np.uint8),
+            strategy=decode_array(data["strategy.B"], fmt, dtype=np.uint8),
+        )
+
+    def get_point_trend(self, mach: str, point: str) -> PointTrend:
+        """Get point trend data."""
+        data = self.__get_point_trend(mach, point)
+        fmt = "zlib"
+
+        return PointTrend(
+            t=decode_array(data["t.I"], fmt, dtype=np.uint32),
+            alarm=decode_array(data["alarm.B"], fmt, dtype=np.uint8),
+            bias=decode_array(data["bias.f"], fmt),
+        )
+
+    def get_proc_mode_trend(self, mach: str, point: str, pmode: str) -> ProcModeTrend:
+        """Get processing mode trend data."""
+        data = self.__get_proc_mode_trend(mach, point, pmode)
+        fmt = "zlib"
+
+        return ProcModeTrend(
+            t=decode_array(data["t.I"], fmt, dtype=np.uint32),
+            alarm=decode_array(data["alarm.B"], fmt, dtype=np.uint8),
+            mask=decode_array(data["mask.B"], fmt, dtype=np.uint8),
+        )
+
+    def get_param_trend(self, mach: str, point: str, param: str) -> ParamTrend:
+        """Get parameter trend data."""
+        data = self.__get_param_trend(mach, point, param)
+        fmt = "zlib"
+
+        return ParamTrend(
+            t=decode_array(data["t.I"], fmt, dtype=np.uint32),
+            value=decode_array(data["value.f"], fmt),
+            alarm=decode_array(data["alarm.B"], fmt, dtype=np.uint8),
+            unit=decode_array(data["unit.H"], fmt, dtype=np.uint16),
         )

@@ -20,42 +20,41 @@ CONTEXT_SETTINGS = {
 
 
 def add_timestamp_options(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Decorator to add --from and --to timestamp options to a command."""
-    func = click.option("--to", help="End timestamp (ISO 8601 format)", type=str)(func)
+    """Decorator to add --start and --end timestamp options to a command."""
+    func = click.option("--end", help="End timestamp (ISO 8601 format)", type=str)(func)
     return click.option(
-        "--from",
-        "from_time",  # Use different parameter name since 'from' is a keyword
+        "--start",
         help="Start timestamp (ISO 8601 format)",
         type=str,
     )(func)
 
 
 def parse_timestamp_options(
-    from_time: str | None = None, to: str | None = None
+    start: str | None = None, end: str | None = None
 ) -> tuple[int | None, int | None]:
-    """Parse and validate timestamp options, returning (from_ts, to_ts) tuple."""
-    from_ts = None
-    to_ts = None
+    """Parse and validate timestamp options, returning (start_ts, end_ts) tuple."""
+    start_ts = None
+    end_ts = None
 
-    if from_time:
+    if start:
         try:
-            from_ts = parse_timestamp(from_time)
+            start_ts = parse_timestamp(start)
         except ValueError as e:
-            msg = f"Invalid from timestamp: {from_time}"
+            msg = f"Invalid start timestamp: {start}"
             raise click.BadParameter(msg) from e
 
-    if to:
+    if end:
         try:
-            to_ts = parse_timestamp(to)
+            end_ts = parse_timestamp(end)
         except ValueError as e:
-            msg = f"Invalid to timestamp: {to}"
+            msg = f"Invalid end timestamp: {end}"
             raise click.BadParameter(msg) from e
 
-    if from_ts is not None and to_ts is not None and from_ts >= to_ts:
-        msg = "From timestamp must be before to timestamp"
+    if start_ts is not None and end_ts is not None and start_ts >= end_ts:
+        msg = "Start timestamp must be before end timestamp"
         raise click.ClickException(msg)
 
-    return from_ts, to_ts
+    return start_ts, end_ts
 
 
 def save_wave_to_csv(wave: Wave, machine: str, point: str, pmode: str) -> str:
@@ -249,13 +248,13 @@ def config(ctx: Context) -> None:
 @config.command(name="list")
 @click.pass_context
 @add_timestamp_options
-def list_configs_cmd(ctx: Context, from_time: str, to: str) -> None:
+def list_configs_cmd(ctx: Context, start: str, end: str) -> None:
     """List configuration IDs"""
-    from_ts, to_ts = parse_timestamp_options(from_time, to)
+    start_ts, end_ts = parse_timestamp_options(start, end)
 
     client = ctx.obj["T8"]
     try:
-        configs = client.list_configs(from_ts, to_ts)
+        configs = client.list_configs(start_ts, end_ts)
     except Exception as e:
         msg = f"Error listing configurations: {e!s}"
         raise click.ClickException(msg) from e
@@ -326,13 +325,13 @@ def snapshot(ctx: Context) -> None:
 @click.pass_context
 @click.option("--machine", "-M", help="Machine name", required=True)
 @add_timestamp_options
-def list_snapshots_cmd(ctx: Context, machine: str, from_time: str, to: str) -> None:
+def list_snapshots_cmd(ctx: Context, machine: str, start: str, end: str) -> None:
     """List snapshots"""
-    from_ts, to_ts = parse_timestamp_options(from_time, to)
+    start_ts, end_ts = parse_timestamp_options(start, end)
 
     client = ctx.obj["T8"]
     try:
-        timestamps = client.list_snapshots(machine, from_ts, to_ts)
+        timestamps = client.list_snapshots(machine, start_ts, end_ts)
     except Exception as e:
         msg = f"Error listing snapshots: {e!s}"
         raise click.ClickException(msg) from e
@@ -386,14 +385,14 @@ def wave(ctx: Context) -> None:
 @click.option("--pmode", "-m", help="Processing mode", required=True)
 @add_timestamp_options
 def list_waves_cmd(
-    ctx: Context, machine: str, point: str, pmode: str, from_time: str, to: str
+    ctx: Context, machine: str, point: str, pmode: str, start: str, end: str
 ) -> None:
     """List waves"""
-    from_ts, to_ts = parse_timestamp_options(from_time, to)
+    start_ts, end_ts = parse_timestamp_options(start, end)
 
     client = ctx.obj["T8"]
     try:
-        timestamps = client.list_waves(machine, point, pmode, from_ts, to_ts)
+        timestamps = client.list_waves(machine, point, pmode, start_ts, end_ts)
     except Exception as e:
         msg = f"Error listing waves: {e!s}"
         raise click.ClickException(msg) from e
@@ -492,14 +491,14 @@ def spectrum(ctx: Context) -> None:
 @click.option("--pmode", "-m", help="Processing mode", required=True)
 @add_timestamp_options
 def list_spectra_cmd(
-    ctx: Context, machine: str, point: str, pmode: str, from_time: str, to: str
+    ctx: Context, machine: str, point: str, pmode: str, start: str, end: str
 ) -> None:
     """List spectra"""
-    from_ts, to_ts = parse_timestamp_options(from_time, to)
+    start_ts, end_ts = parse_timestamp_options(start, end)
 
     client = ctx.obj["T8"]
     try:
-        timestamps = client.list_spectra(machine, point, pmode, from_ts, to_ts)
+        timestamps = client.list_spectra(machine, point, pmode, start_ts, end_ts)
     except Exception as e:
         msg = f"Error listing spectra: {e!s}"
         raise click.ClickException(msg) from e

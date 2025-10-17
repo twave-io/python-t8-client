@@ -21,7 +21,9 @@ class T8:
         self.__passw = password
         self.__base_url = f"{self.__host}/rest"
 
-    def __build_url_with_timestamp_params(self, base_url: str, from_ts: int | None = None, to_ts: int | None = None) -> str:
+    def __build_url_with_timestamp_params(
+        self, base_url: str, from_ts: int | None = None, to_ts: int | None = None
+    ) -> str:
         """Build URL with optional timestamp parameters."""
         params = []
         if from_ts is not None:
@@ -61,7 +63,14 @@ class T8:
         """List available processing modes."""
         return self.__request("waves")
 
-    def __list_waves(self, mach: str, point: str, pmode: str, from_ts: int | None = None, to_ts: int | None = None) -> dict:
+    def __list_waves(
+        self,
+        mach: str,
+        point: str,
+        pmode: str,
+        from_ts: int | None = None,
+        to_ts: int | None = None,
+    ) -> dict:
         """List available waves for a given machine, point, and processing mode."""
         base_url = f"waves/{mach}/{point}/{pmode}"
         url = self.__build_url_with_timestamp_params(base_url, from_ts, to_ts)
@@ -77,7 +86,9 @@ class T8:
         """Get a specific configuration given its ID."""
         return self.__request(f"confs/{conf}")
 
-    def __list_snapshots(self, mach: str, from_ts: int | None = None, to_ts: int | None = None) -> dict:
+    def __list_snapshots(
+        self, mach: str, from_ts: int | None = None, to_ts: int | None = None
+    ) -> dict:
         """List available snapshots for a given machine."""
         base_url = f"snapshots/{mach}"
         url = self.__build_url_with_timestamp_params(base_url, from_ts, to_ts)
@@ -97,7 +108,14 @@ class T8:
         """
         return self.__request(f"waves/{mach}/{point}/{pmode}/{t}?array_fmt={array_fmt}")
 
-    def __list_spectra(self, mach: str, point: str, pmode: str, from_ts: int | None = None, to_ts: int | None = None) -> dict:
+    def __list_spectra(
+        self,
+        mach: str,
+        point: str,
+        pmode: str,
+        from_ts: int | None = None,
+        to_ts: int | None = None,
+    ) -> dict:
         """List available spectra for a given machine, point, and processing mode."""
         base_url = f"spectra/{mach}/{point}/{pmode}"
         url = self.__build_url_with_timestamp_params(base_url, from_ts, to_ts)
@@ -153,7 +171,9 @@ class T8:
         """Get a specific configuration given its ID."""
         return self.__get_config(conf)
 
-    def list_snapshots(self, mach: str, from_ts: int | None = None, to_ts: int | None = None) -> list[int]:
+    def list_snapshots(
+        self, mach: str, from_ts: int | None = None, to_ts: int | None = None
+    ) -> list[int]:
         """List available snapshots for a given machine."""
         links = self.__list_snapshots(mach, from_ts, to_ts)
         items = links["_items"]
@@ -171,7 +191,14 @@ class T8:
         items = links["_items"]
         return [item["name"] for item in items]
 
-    def list_waves(self, mach: str, point: str, pmode: str, from_ts: int | None = None, to_ts: int | None = None) -> list[int]:
+    def list_waves(
+        self,
+        mach: str,
+        point: str,
+        pmode: str,
+        from_ts: int | None = None,
+        to_ts: int | None = None,
+    ) -> list[int]:
         """List available waves for a given machine, point, and processing mode."""
         links = self.__list_waves(mach, point, pmode, from_ts, to_ts)
         items = links["_items"]
